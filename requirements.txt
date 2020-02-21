@@ -1,0 +1,5 @@
+certifi==2019.11.28
+ndjson==0.2.0
+pipenv==2018.11.26
+virtualenv==16.7.9
+virtualenv-clone==0.5.3
