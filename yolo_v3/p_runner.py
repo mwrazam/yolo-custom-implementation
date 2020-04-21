@@ -1,17 +1,12 @@
 import tensorflow as tf
-from PIL import Image, ImageDraw, ImageFont
-from IPython.display import display
-from seaborn import color_palette
 import numpy as np
 import cv2
+from keras.preprocessing.image import img_to_array
+from darknet import Darknet
+import matplotlib.pyplot as plt
 
 #Configuration file
 import config
-from yolo import yolov3
-
-
-def load_images(img_names, model_size):
-	pass
 
 
 def load_class_names(file_name):
@@ -27,23 +22,30 @@ def draw_boxes():
 
 
 def main():
-	img_names = ['input/dog.jpg', 'input/person.jpg']
-	for img in img_names: 
-		Image.open(img).show()
-	batch_size = len(img_names)
-	batch = load_images(img_names, model_size=config._MODEL_SIZE)
-	class_names = load_class_names('input/coco.names')
+	# load image
+	# Code need to change based on the input dataset type
+	img_names = 'input/dog.jpg'
+	# set the required size
+	image = cv2.imread(img_names)
+	original_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+	resized_img = cv2.resize(original_img, config._MODEL_SIZE)
+	# Display the images
+	plt.subplot(121)
+	plt.title('Original Image')
+	plt.imshow(original_img)
+	plt.subplot(122)
+	plt.title('Resized Image')
+	plt.imshow(resized_img)
+	plt.show()
+
+	# convert to numpy array
+	img = img_to_array(resized_img)
+
+	name_file = 'data/coco.names'
+	cfg_file = 'cfg/yolov3.cfg'
 	
-	# model = yolov3(n_classes=n_classes, model_size=_MODEL_SIZE,
-	#                 max_output_size=max_output_size,
-	#                 iou_threshold=iou_threshold,
-	#                 confidence_threshold=confidence_threshold)
-
-	yolov3()
-
-	# Returns a Tensor that may be used as a handle for feeding a value, but not evaluated directly.
-	inputs = tf.compat.v1.placeholder(tf.float32, [batch_size, 416, 416, 3])
-
+	class_names = load_class_names(name_file)
+	model = Darknet(cfg)
 	print("This is main function.")
 
 	# draw_boxes(img_names, detection_result, class_names, config._MODEL_SIZE)
