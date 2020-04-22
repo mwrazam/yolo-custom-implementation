@@ -87,6 +87,17 @@ model.add(layers.Dense(3, activation='softmax'))
 # TODO: Replace generic operations with custo values for optimizer
 adam = tf.keras.optimizers.Adam()
 model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['top_k_categorical_accuracy'])
-#print(model.summary())
+print(model.summary())
 model.fit(x = x_train, y= y_train, validation_split=0.1, batch_size = 10, verbose=2, epochs=10)
-score = model.evaluate(x_test, y_test, verbose=0)
+score = model.evaluate(x_test, y_test, verbose=2)
+
+# TODO: Below utility operations need to be incrporated properly and with error checking
+
+# TODO: Extract weights to file
+#model.save_weights('./weights/weights')
+
+# TODO: Save the model
+#model.save('model/model')
+
+# TODO: Incorporate this into model setup before execution
+#model.load_weights(WEIGHTS FILE NAME HERE)
