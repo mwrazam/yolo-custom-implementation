@@ -31,14 +31,20 @@ def load(classes, data_dir, file_ext=".npy", reload_data=False, samples=10, img_
             data = data[0:samples, :, None, None]
 
             # process and prepare input data, add to data holder
+            print('Processing input data for %s class...' % c)
+
             data_x = prepare_x(data, x.shape)
             x = np.concatenate((x, data_x), axis=0)
 
             # process and prepare response data, add to holder
+            print('Processing response data for %s class...' % c)
             labels = np.full(x.shape[0], idx)
             l = np.append(y, labels)
-            data_y = prepare_y(data_x, labels, classes, num_cells, y.shape)
+            data_y = prepare_y(data_x, labels, classes, classes[idx], num_cells, y.shape)
             y = np.concatenate((y, data_y), axis=0)
+
+        print('Final input data is %s' % str(x.shape))
+        print('Final response data is %s' % str(y.shape))
 
     return (x,y)
 
@@ -57,7 +63,6 @@ def prepare_x(data, output_size):
     # N: Number of samples
     # w, h: Initial image size
     # w2, h2: Output image size
-    print('Processing input data...')
 
     # make sure our input array is not empty
     assert (len(data) > 0), 'data is empty'
@@ -91,12 +96,11 @@ def prepare_x(data, output_size):
     return output
 
 # resise and perform preprocessing on output responses
-def prepare_y(data, labels, classes, num_cells, response_size):
+def prepare_y(data, labels, classes, this_class, num_cells, response_size):
     # Input: N x 1
     # Output: N x cw x ch  x (1 + number of classes + 4 (bounding box) + 1)
     # N: Number of samples
     # cw, ch: number of cells in width/height direction
-    print('Processing response data...')
 
     # make sure our intput array is not empty
     assert (len(data) > 0), "data is empty"
@@ -109,50 +113,50 @@ def prepare_y(data, labels, classes, num_cells, response_size):
     v = len(classes) + 1 + 4
 
     # create output response holder
-    output = np.empty([0, num_cells[0], num_cells[1], v])
+    output = np.empty([0, num_cells[0] * num_cells[1], v])
 
     # generate response vectors for each image
     for idx, img in enumerate(data):
-        img_output_vectors = np.empty([num_cells[0], num_cells[1], v])
+        img_output_vectors = np.empty([0, v])
         img_cells = split_image_into_cells(img, num_cells)
 
-        # iterate over all cells and calculate output vector
+        # iterate over all cells and calculate the output vector
         for i in range(img_cells.shape[0]):
-            for j in range(img_cells.shape[1]):
 
-                # grab the cell
-                cell = img_cells[i,j]
+            # grab the cell
+            cell = img_cells[i,:,:]
 
-                # holder for class specific probabilities
-                class_values = np.empty([len(classes)])
-                class_values.fill(0)
+            # generate class specific probability
+            class_values = np.zeros([len(classes)])
+            class_idx = classes.index(this_class)
+            class_values[class_idx] = 1
 
-                # holder for bounding box box values
-                pc = 0
-                bx = 0
-                by = 0
-                bh = 0
-                bw = 0
-                box_values = np.array([pc, bx, by, bh, bw])
+            # holder for bounding box values
+            pc, bx, by, bw, bh = 0, 0, 0, 0, 0
+            box_values = np.array([pc, bx, by, bw, bh])
 
-                # only perform calculations if non-zero pixels exist in this cell
-                if(all(x > 0 for x in cell.flatten())):
+            # update value for non-zero cells
+            if not all(i == 0 for i in cell.flatten()):
 
-                    # assume class is present
-                    pc = 1
+                # assume class is present for non-zero values
+                pc = 1
 
-                    ####################################
-                    # TODO: Generate bounding box values
-                    ####################################
+                ####################################
+                # TODO: Generate bounding box values
+                ####################################
 
-                    # generate bounding box vector
-                    box_values = [pc, bx, by, bh, bw]
+            # update bounding box values
+            box_values = [pc, bx, by, bw, bh]
 
-                # concatenate bounding box and
-                img_output_vectors[i,j,:] = np.concatenate((box_values, class_values), axis=0)
+            # concatenate bounding box and class values into one output vector
+            output_vector = np.concatenate((box_values, class_values)).reshape(1,v)
+            img_output_vectors = np.concatenate((img_output_vectors, output_vector), axis=0)
 
-        # concatenate all img cell vectors to output
-        output = np.concatenate((output, img_output_vectors.reshape(1, num_cells[0], num_cells[1], v)), axis=0)
+        # concatenate all output vectors for all cells in this image
+        output = np.concatenate((output, img_output_vectors.reshape(1,num_cells[0] * num_cells[1],v)), axis=0)
+
+    # reshape to output requirements
+    output = output.reshape(len(data), num_cells[0], num_cells[1], v)
 
     return output
 
@@ -182,14 +186,15 @@ def split_image_into_cells(image, num_cells):
 
 def divide_into_sets(input, response, ratio):
     # create indicies
-    trainingIndices = np.random.randint(0, l, int(trainingSetRatio * l))
+    l = len(input)
+    trainingIndices = np.random.randint(0, l, int(ratio * l))
     testIndicies = np.arange(0,l)
     testIndicies = np.delete(testIndicies, trainingIndices)
 
     # seperate data
-    x_train = x[trainingIndices]
-    y_train = y[trainingIndices]
-    x_test = x[testIndicies]
-    y_test = y[testIndicies]
+    x_train = input[trainingIndices]
+    y_train = response[trainingIndices]
+    x_test = input[testIndicies]
+    y_test = response[testIndicies]
 
     return x_train, y_train, x_test, y_test

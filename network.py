@@ -3,8 +3,8 @@ from tensorflow import keras
 import os
 import metrics as metrics
 
-def build_network(loss_func=None, optimizer=None, weights_file=None, version=1, input_size=(None, 448,448,3), output_size=392):
-    network = build_layers();
+def build_network(loss_func=None, optimizer=None, weights_file=None, version=1, input_size=(448,448,3), output_size=392):
+    network = build_layers(version=version, input_size=input_size);
 
     if(loss_func==None):
         loss_func = define_loss_function()
@@ -17,7 +17,7 @@ def build_network(loss_func=None, optimizer=None, weights_file=None, version=1, 
 
     return network
 
-def build_layers(version=1):
+def build_layers(version, input_size):
     if(version==1):
         model = keras.Sequential()
 
