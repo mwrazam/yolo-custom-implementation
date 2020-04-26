@@ -125,7 +125,7 @@ def prepare_y(data, labels, classes, this_class, num_cells, response_size):
 
             # grab the cell
             cell = img_cells[i,:,:]
-            # print(cell.shape)
+            
             # generate class specific probability
             class_values = np.zeros([len(classes)])
             class_idx = classes.index(this_class)
@@ -140,11 +140,8 @@ def prepare_y(data, labels, classes, this_class, num_cells, response_size):
 
                 # assume class is present for non-zero values
                 pc = 1
-                # print(cell.flatten().shape)
-                ####################################
-                # TODO: Generate bounding box values
-                ####################################
                 
+                # Grab all non-zero values' index 
                 bx_index = np.where(cell!=0)[0]
                 by_index = np.where(cell!=0)[1]
 
