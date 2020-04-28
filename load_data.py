@@ -42,7 +42,7 @@ def load(classes, data_dir, file_ext=".npy", reload_data=False, samples=10, img_
             l = np.append(y, labels)
             data_y = prepare_y(data_x, labels, classes, classes[idx], num_cells, y.shape)
             y = np.concatenate((y, data_y), axis=0)
-
+            
         print('Final input data is %s' % str(x.shape))
         print('Final response data is %s' % str(y.shape))
 
@@ -125,7 +125,7 @@ def prepare_y(data, labels, classes, this_class, num_cells, response_size):
 
             # grab the cell
             cell = img_cells[i,:,:]
-
+            
             # generate class specific probability
             class_values = np.zeros([len(classes)])
             class_idx = classes.index(this_class)
@@ -140,10 +140,18 @@ def prepare_y(data, labels, classes, this_class, num_cells, response_size):
 
                 # assume class is present for non-zero values
                 pc = 1
+                
+                # Grab all non-zero values' index 
+                bx_index = np.where(cell!=0)[0]
+                by_index = np.where(cell!=0)[1]
 
-                ####################################
-                # TODO: Generate bounding box values
-                ####################################
+                # bw, bh: distence between start to last index
+                bw = bx_index[len(bx_index) - 1] - bx_index[0]
+                bh = by_index[len(by_index) - 1] - by_index[0]
+
+                # bx, by: start index plus half width and height
+                bx = bx_index[0] + bw // 2
+                by = by_index[0] + bh // 2
 
             # update bounding box values
             box_values = [pc, bx, by, bw, bh]
