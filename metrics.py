@@ -14,3 +14,8 @@ def interpret_output(response):
 def iou(box1, box2):
     # TODO
     pass
+
+# Use bounding box and class probabilities to draw a bounding box for this image
+def draw_bounding_boxes_on_image(img, output_vectors):
+    # TODO
+    pass

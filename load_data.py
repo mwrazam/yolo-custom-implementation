@@ -24,7 +24,7 @@ def load(classes, data_dir, file_ext=".npy", reload_data=False, samples=10, img_
         for idx, c in enumerate(classes):
             # download the data file if we don't already have it
             if(not path.exists(data_dir + "/" + c + file_ext)):
-                download_data_file(c, url)
+                download_data_file(c, base_url)
 
             # load raw data and grab only the number of samples we are to use
             data = np.load(data_dir + "/" + c + file_ext)

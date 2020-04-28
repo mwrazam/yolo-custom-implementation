@@ -1,10 +1,11 @@
 from tensorflow.keras import layers
 from tensorflow import keras
+import tensorflow as tf
 import os
 import metrics as metrics
 
 def build_network(loss_func=None, optimizer=None, weights_file=None, version=1, input_size=(448,448,3), output_size=392):
-    network = build_layers(version=version, input_size=input_size);
+    network = build_layers(version=version, input_size=input_size, output_size=output_size);
 
     if(loss_func==None):
         loss_func = define_loss_function()
@@ -17,56 +18,57 @@ def build_network(loss_func=None, optimizer=None, weights_file=None, version=1, 
 
     return network
 
-def build_layers(version, input_size):
+def build_layers(version, input_size, output_size):
     if(version==1):
         model = keras.Sequential()
 
         # block 1: layers 1-2
-        model.add(layers.Convolution2D(filters=64, kernel_size=(7,7) ,strides=(2,2), input_shape=input_size)) # conv1
+        model.add(layers.Convolution2D(filters=64, kernel_size=(7,7) ,strides=(2,2), input_shape=input_size, padding='same')) # conv1
         model.add(layers.MaxPooling2D(pool_size=(2,2), strides=(2,2)))
 
         # block 2: layers 3-4
-        model.add(layers.Convolution2D(filters=192, kernel_size=(3,3))) # conv2
+        model.add(layers.Convolution2D(filters=192, kernel_size=(3,3), padding='same')) # conv2
         model.add(layers.MaxPooling2D(pool_size=(2,2), strides=(2,2)))
 
         # block 3: layers 5-9
-        model.add(layers.Convolution2D(filters=128, kernel_size=(1,1))) # conv3
-        model.add(layers.Convolution2D(filters=256, kernel_size=(3,3))) # conv4
-        model.add(layers.Convolution2D(filters=256, kernel_size=(1,1))) # conv5
-        model.add(layers.Convolution2D(filters=512, kernel_size=(3,3))) # conv6
+        model.add(layers.Convolution2D(filters=128, kernel_size=(1,1), padding='same')) # conv3
+        model.add(layers.Convolution2D(filters=256, kernel_size=(3,3), padding='same')) # conv4
+        model.add(layers.Convolution2D(filters=256, kernel_size=(1,1), padding='same')) # conv5
+        model.add(layers.Convolution2D(filters=512, kernel_size=(3,3), padding='same')) # conv6
         model.add(layers.MaxPooling2D(pool_size=(2,2), strides=(2,2)))
 
         # block 4: layers 10-20
-        model.add(layers.Convolution2D(filters=256, kernel_size=(1,1))) # conv7
-        model.add(layers.Convolution2D(filters=512, kernel_size=(3,3))) # conv8
-        model.add(layers.Convolution2D(filters=256, kernel_size=(1,1))) # conv9
-        model.add(layers.Convolution2D(filters=512, kernel_size=(3,3))) # conv10
-        model.add(layers.Convolution2D(filters=256, kernel_size=(1,1))) # conv11
-        model.add(layers.Convolution2D(filters=512, kernel_size=(3,3))) # conv12
-        model.add(layers.Convolution2D(filters=256, kernel_size=(1,1))) # conv13
-        model.add(layers.Convolution2D(filters=512, kernel_size=(3,3))) # conv14
-        model.add(layers.Convolution2D(filters=512, kernel_size=(1,1))) # conv15
-        model.add(layers.Convolution2D(filters=1024, kernel_size=(3,3))) # conv16
+        model.add(layers.Convolution2D(filters=256, kernel_size=(1,1), padding='same')) # conv7
+        model.add(layers.Convolution2D(filters=512, kernel_size=(3,3), padding='same')) # conv8
+        model.add(layers.Convolution2D(filters=256, kernel_size=(1,1), padding='same')) # conv9
+        model.add(layers.Convolution2D(filters=512, kernel_size=(3,3), padding='same')) # conv10
+        model.add(layers.Convolution2D(filters=256, kernel_size=(1,1), padding='same')) # conv11
+        model.add(layers.Convolution2D(filters=512, kernel_size=(3,3), padding='same')) # conv12
+        model.add(layers.Convolution2D(filters=256, kernel_size=(1,1), padding='same')) # conv13
+        model.add(layers.Convolution2D(filters=512, kernel_size=(3,3), padding='same')) # conv14
+        model.add(layers.Convolution2D(filters=512, kernel_size=(1,1), padding='same')) # conv15
+        model.add(layers.Convolution2D(filters=1024, kernel_size=(3,3), padding='same')) # conv16
         model.add(layers.MaxPooling2D(pool_size=(2,2), strides=(2,2)))
 
         # block 5: layers 21-26
-        model.add(layers.Convolution2D(filters=512, kernel_size=(1,1))) # conv17
-        model.add(layers.Convolution2D(filters=1024, kernel_size=(3,3))) # conv18
-        model.add(layers.Convolution2D(filters=512, kernel_size=(1,1))) # conv19
-        model.add(layers.Convolution2D(filters=1024, kernel_size=(3,3))) # conv20
+        model.add(layers.Convolution2D(filters=512, kernel_size=(1,1), padding='same')) # conv17
+        model.add(layers.Convolution2D(filters=1024, kernel_size=(3,3), padding='same')) # conv18
+        model.add(layers.Convolution2D(filters=512, kernel_size=(1,1), padding='same')) # conv19
+        model.add(layers.Convolution2D(filters=1024, kernel_size=(3,3), padding='same')) # conv20
         model.add(layers.Convolution2D(filters=1024, kernel_size=(3,3))) # conv21
         model.add(layers.Convolution2D(filters=1024, kernel_size=(3,3), strides=(2,2))) # conv22
 
         # block 6: layers 27-28
-        model.add(layers.Convolution2D(filters=1024, kernel_size=(3,3))) # conv23
-        model.add(layers.Convolution2D(filters=1024, kernel_size=(3,3))) # conv24
+        model.add(layers.Convolution2D(filters=1024, kernel_size=(3,3), padding='same')) # conv23
+        model.add(layers.Convolution2D(filters=1024, kernel_size=(3,3), padding='same')) # conv24
 
         # block 7: layers 29-
         model.add(layers.Flatten())
         model.add(layers.Dense(1024))
         model.add(layers.Dense(4096))
-        model.add(layers.Dropout())
+        model.add(layers.Dropout(rate=0.1))
         model.add(layers.Dense(output_size, activation='softmax'))
+        print(model.summary())
     else:
         # In the future, v2, v3, etc. could be implemented too
         print('Version not recognized')
