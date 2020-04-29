@@ -7,39 +7,35 @@ lamda_noobj = 0.5
 gridcells = 7**2
 classes = 3
 
-def yolo_pcloss(pc_true, pc_pred):
+def yolo_pcloss(pc_true, pc_pred, t):
     lo = K.square(pc_true - pc_pred)
-    if pc_true == 1:
-        loss1 = lo
-    else:
-        loss1 = lamda_noobj*(lo)
+    loss_t = lo
+    loss_f = lamda_noobj*(lo)
+    loss1 = tf.where(t, loss_t, loss_f)
     loss = K.mean(loss1)
     return loss
 
-def yolo_xyloss(a_true, a_pred, pc_true):
+def yolo_xyloss(a_true, a_pred, t):
     lo = K.square(a_true - a_pred)
-    if pc_true == 1:
-        loss1 = lamda_coord*(lo)
-    else:
-        loss1 = K.zeros_like(a_true)
+    loss_t = lamda_coord*(lo)
+    loss_f = K.zeros_like(a_true)
+    loss1 = tf.where(t, loss_t, loss_f)
     loss = K.mean(loss1)
     return loss
 
-def yolo_whloss(a_true, a_pred, pc_true):
+def yolo_whloss(a_true, a_pred, t):
     lo = K.square(K.sqrt(a_true)-K.sqrt(a_pred))
-    if pc_true == 1:
-        loss1 = lamda_coord*(lo)
-    else:
-        loss1 = K.zeros_like(a_true)
+    loss_t = lamda_coord*(lo)
+    loss_f = K.zeros_like(a_true)
+    loss1 = tf.where(t, loss_t, loss_f)
     loss = K.mean(loss1)
     return loss
 
-def yolo_classloss(a_true, a_pred, pc_true):
+def yolo_classloss(a_true, a_pred, t):
     lo = K.square(a_true - a_pred)
-    if pc_true == 1:
-        loss1 = lo
-    else:
-        loss1 = K.zeros_like(a_true)
+    loss_t = lo
+    loss_f = K.zeros_like(a_true)
+    loss1 = tf.where(t, loss_t, loss_f)
     loss = K.mean(loss1)
     return loss
 
@@ -74,22 +70,43 @@ def yolo_loss(y_true, y_pred):
 
     print(classes_true)
     print(classes_pred)
+    t = K.greater(pc_t, 0.5)
 
-    # w_true = tf.compat.v1.placeholder(tf.float32, shape=(49,49))
-    # w_pred = tf.compat.v1.placeholder(tf.float32, shape=(49,49))
-    # h_true = tf.compat.v1.placeholder(tf.float32, shape=(49,49))
-    # h_pred = tf.compat.v1.placeholder(tf.float32, shape=(49,49))
     # Calculate losses
-    pcloss = yolo_pcloss(pc_t,pc_p)
-    xloss = yolo_xyloss(x_t,x_p,pc_t)
-    yloss = yolo_xyloss(y_t,y_p,pc_t)
-    wloss = yolo_whloss(w_t,w_p,pc_t)
-    hloss = yolo_whloss(h_t,h_p,pc_t)
+    pcloss = yolo_pcloss(pc_t,pc_p,t)
+    xloss = yolo_xyloss(x_t,x_p,t)
+    yloss = yolo_xyloss(y_t,y_p,t)
+    wloss = yolo_whloss(w_t,w_p,t)
+    hloss = yolo_whloss(h_t,h_p,t)
     classesloss = 0
     for i in range(classes):
-        cla_loss = yolo_classloss(classes_true[i], classes_pred[i], pc_t)
+        cla_loss = yolo_classloss(classes_true[i], classes_pred[i], t)
         classesloss += cla_loss
         
     loss = pcloss+xloss+yloss+wloss+hloss+classesloss
+    # return loss
+    return loss,pcloss,xloss,yloss,wloss,hloss,classesloss
 
-    return loss
+
+# Loss function Testing
+x =K.placeholder(ndim=2)
+y =K.placeholder(ndim=2)
+loss,confidloss,xloss,yloss,wloss,hloss,classesloss = yolo_loss(y,x)
+
+print("### Got all loss values ###")
+f = K.function([y,x], [loss,confidloss,xloss,yloss,wloss,hloss,classesloss])
+
+
+print("### Training ###")
+xtrain = np.ones(392*10).reshape(10,392)
+ytrain = np.zeros(392*10).reshape(10,392)
+ytrain[0][0]=1
+ytrain[0][49]=0.1
+ytrain[0][49*2]=0.2
+ytrain[0][49*3]=0.3
+ytrain[0][49*4]=0.4
+ytrain[0][49*5]=1
+
+print("### Print Results ###")
+predictions = f([ytrain,xtrain])
+print(predictions)
