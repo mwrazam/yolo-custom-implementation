@@ -2,8 +2,8 @@ import cv2
 import math
 import numpy as np
 import tensorflow as tf
-#from keras import backend as K
 from tensorflow.keras import backend as K
+from sklearn.metrics import average_precision_score
 
 # BoundBox class
 class BoundBox:
@@ -21,8 +21,9 @@ class BoundBox:
 
 # Calculate the output of testing the neural network
 def calculate_metrics(truth, predicted):
-    # TODO
-    pass
+    # Evaluation metric from A2
+    m = average_precision_score(truth, predicted)
+    return m
 
 # Interpret output of neural network
 def interpret_output(response):
