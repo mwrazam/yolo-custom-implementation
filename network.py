@@ -3,19 +3,21 @@ from tensorflow import keras
 import tensorflow as tf
 import os
 import metrics as metrics
+import loss
 
 def build_network(loss_func=None, optimizer=None, weights_file=None, version=1, input_size=(448,448,3), output_size=392):
     network = build_layers(version=version, input_size=input_size, output_size=output_size);
 
     if(loss_func==None):
-        loss_func = define_loss_function()
+        loss_func = loss.yolo_loss
 
     if(optimizer==None):
         optimizer = define_optimizer()
 
     # TODO: Metrics are not correct here
+    print("This is LOSS FUNCTION here: ")
     network.compile(loss=loss_func, optimizer=optimizer, metrics=['top_k_categorical_accuracy'])
-
+    print("LOSS FUNCTION WORKED! ")
     return network
 
 def build_layers(version, input_size, output_size):
@@ -74,65 +76,6 @@ def build_layers(version, input_size, output_size):
         print('Version not recognized')
 
     return model
-
-# Define loss function to optimize network
-# y_true, y_pred: (1500,7,7,8)
-# 8: pc,bx,by,bw,bh,c1,c2,c3
-def define_loss_function(y_true, y_pred):
-    gridcells = 7
-    box_per_cell = 1
-
-    # Each bounding box consists of 5 predictions: x, y, w, h, and confidence
-    box_pred_per_cell = 5
-
-    # B * 5 + C
-    total_pred_per_cell = box_per_cell * box_pred_per_cell
-    final_pred_cell = total_pred_per_cell + 3
-
-    lamda_coord = 5
-    lamda_noobj = 0.5
-    truth_num = final_pred_cell
-
-    # truth table format is [[confid,x,y,w,h]..,classes] for one cell
-    totloss =0
-    for i in range(y_true.shape[0]):
-
-        yt = y_true[i,:,:,:].flatten()
-        yp = y_pred[i,:,:,:].flatten()
-        # print(yt)
-        for cell in range(gridcells**2):
-            cell_loss = 0
-            pcloss = 0
-            xyloss = 0
-            whloss = 0
-            closs = 0
-
-            # pc loss
-            pcloss += (yt[cell*truth_num] - yp[cell*truth_num])**2
-
-            # bx and by loss: sum [(x_t - x_p)^2 + (y_t - y_p)^2]
-            xyloss += (yt[cell*truth_num+1] - yp[cell*truth_num+1]) ** 2 + (yt[cell*truth_num+2] - yp[cell*truth_num+2]) ** 2
-
-            # width and height loss: sum [(root(w_t) - root(w_p))^2 + (root(h_t) - root(h_p))^2]
-            whloss += (math.sqrt(yt[cell*truth_num+3]) - math.sqrt(yp[cell*truth_num+3]))**2 + (math.sqrt(yt[cell*truth_num+4]) - math.sqrt(yp[cell*truth_num+4]))**2
-
-            # Class loss
-            closs += (yt[cell*truth_num+5] - yp[cell*truth_num+5])**2 + (yt[cell*truth_num+6] - yp[cell*truth_num+6])**2 + (yt[cell*truth_num+7] - yp[cell*truth_num+7])**2
-
-            # cell has an object
-            if yt[cell*truth_num] == 1:
-                sumpcloss = pcloss
-                sumxyloss = lamda_coord * xyloss
-                sumwhloss = lamda_coord * whloss
-                sumcloss = closs
-            else:
-                sumpcloss = 0
-                sumxyloss = 0
-                sumwhloss = 0
-                sumcloss = lamda_noobj * closs
-            cell_loss = sumpcloss + sumxyloss + sumwhloss + sumcloss
-            totloss += cell_loss
-    return totloss
 
 # Optimizer to use for network training
 def define_optimizer():
