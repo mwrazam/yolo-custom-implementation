@@ -35,8 +35,6 @@ def draw_box(y_vals):
     for img in y_vals:
         box_val = []
         for cell in img:
-            # for box in cell:
-            print(cell)
             for box_values in cell:
                 xmin = int(box_values[1] - box_values[3] // 2)
                 xmax = int(box_values[1] + box_values[3] // 2)

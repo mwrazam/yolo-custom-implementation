@@ -68,8 +68,6 @@ def yolo_loss(y_true, y_pred):
         cp = tf.slice(y_pred, [0,gridcells*(5+i)], [-1,gridcells])
         classes_pred.append(cp)
 
-    print(classes_true)
-    print(classes_pred)
     t = K.greater(pc_t, 0.5)
 
     # Calculate losses
@@ -84,29 +82,31 @@ def yolo_loss(y_true, y_pred):
         classesloss += cla_loss
         
     loss = pcloss+xloss+yloss+wloss+hloss+classesloss
-    return loss
-    # return loss,pcloss,xloss,yloss,wloss,hloss,classesloss
+    # return loss
+    return loss,pcloss,xloss,yloss,wloss,hloss,classesloss
 
 
 # Loss function Testing
-# x =K.placeholder(ndim=2)
-# y =K.placeholder(ndim=2)
-# loss,confidloss,xloss,yloss,wloss,hloss,classesloss = yolo_loss(y,x)
+x =K.placeholder(ndim=2)
+y =K.placeholder(ndim=2)
+loss,confidloss,xloss,yloss,wloss,hloss,classesloss = yolo_loss(y,x)
 
-# print("### Got all loss values ###")
-# f = K.function([y,x], [loss,confidloss,xloss,yloss,wloss,hloss,classesloss])
+print("### Got all loss values ###")
+f = K.function([y,x], [loss,confidloss,xloss,yloss,wloss,hloss,classesloss])
 
 
-# print("### Training ###")
-# xtrain = np.ones(392*10).reshape(10,392)
-# ytrain = np.zeros(392*10).reshape(10,392)
-# ytrain[0][0]=1
-# ytrain[0][49]=0.1
-# ytrain[0][49*2]=0.2
-# ytrain[0][49*3]=0.3
-# ytrain[0][49*4]=0.4
-# ytrain[0][49*5]=1
+print("### Training ###")
+xtrain = np.ones(392*1).reshape(1,392)
+ytrain = np.zeros(392*1).reshape(1,392)
+ytrain[0][0]=1
+ytrain[0][49]=0.1
+ytrain[0][49*2]=1
+ytrain[0][49*3]=4
+ytrain[0][49*4]=4
+ytrain[0][49*5]=1
+ytrain[0][49*6]=0
+ytrain[0][49*7]=0
 
-# print("### Print Results ###")
-# predictions = f([ytrain,xtrain])
-# print(predictions)
+print("### Print Results ###")
+predictions = f([ytrain,xtrain])
+print(predictions)
