@@ -42,7 +42,9 @@ def load(classes, data_dir, file_ext=".npy", reload_data=False, samples=10, img_
             l = np.append(y, labels)
             data_y = prepare_y(data_x, labels, classes, classes[idx], num_cells, y.shape)
             y = np.concatenate((y, data_y), axis=0)
-            
+        
+        # Reshape the output to match loss function
+        y = y.reshape(y.shape[0], y.shape[1]*y.shape[2]*y.shape[3])
         print('Final input data is %s' % str(x.shape))
         print('Final response data is %s' % str(y.shape))
 
