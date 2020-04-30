@@ -3,7 +3,7 @@ import math
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import backend as K
-from sklearn.metrics import average_precision_score
+# from sklearn.metrics import average_precision_score
 
 # BoundBox class
 class BoundBox:
@@ -22,13 +22,49 @@ class BoundBox:
 # Calculate the output of testing the neural network
 def calculate_metrics(truth, predicted):
     # Evaluation metric from A2
-    m = average_precision_score(truth, predicted)
-    return m
+    # m = average_precision_score(truth, predicted)
+    # return m
+    pass
 
 # Interpret output of neural network
 def interpret_output(response):
     # TODO
     pass
+
+# interval_a: box 1 (min, max)
+# interval_b: box 2 (mix, max)
+def overlap(interval_a, interval_b):
+    amin, amax = interval_a
+    bmin, bmax = interval_b
+
+    if bmin < amin:
+        # bmin < bmax < amin< amax, no overlap, return 0
+        if bmax < amin:
+            return 0
+        else:
+            # bmin < amin < amax or bmax, has overlap, return overlap value
+            return min(amax,bmax) - amin
+    else:
+        # No overlap
+        if amax < bmin:
+            return 0
+        else:
+            return min(amax,bmax) - bmin
+
+# Calculate intersection over union confidence scores for bounding boxes,
+# TODO: Check threshold
+# box1, box2: (7,7,8)
+def iou(box1, box2):
+    # TODO
+    intersection_w = overlap([box1.xmin, box1.xmax], [box2.xmin, box2.xmax])
+    intersection_h = overlap([box1.ymin, box1.ymax], [box2.ymin, box2.ymax])
+
+    intersect_area = intersection_w * intersection_h
+    w1, h1 = box1.xmax-box1.xmin, box1.ymax-box1.ymin
+    w2, h2 = box2.xmax-box2.xmin, box2.ymax-box2.ymin
+    union = w1*h1 + w2*h2 - intersect_area
+    iou_val = float(intersect_area) / union
+    return iou_val
 
 # y_vals: (1500,7,7,8)
 #   pc,bx,by,bw,bh,c1,c2,c3

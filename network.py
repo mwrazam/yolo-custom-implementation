@@ -5,18 +5,15 @@ import os
 import metrics as metrics
 import loss
 
-def build_network(loss_func=None, optimizer=None, weights_file=None, version=1, input_size=(448,448,3), output_size=392):
+def build_network(y, batch=24, optimizer=None, weights_file=None, version=1, input_size=(448,448,3), output_size=392):
     network = build_layers(version=version, input_size=input_size, output_size=output_size);
-
-    if(loss_func==None):
-        loss_func = loss.yolo_loss
 
     if(optimizer==None):
         optimizer = define_optimizer()
 
     # TODO: Metrics are not correct here
     print("This is LOSS FUNCTION here: ")
-    network.compile(loss=loss_func, optimizer=optimizer, metrics=['top_k_categorical_accuracy'])
+    network.compile(loss=loss.custom_loss(y,batch), optimizer=optimizer, metrics=['top_k_categorical_accuracy'])
     print("LOSS FUNCTION WORKED! ")
     return network
 
@@ -102,7 +99,7 @@ def load_weights(network, file):
     return network
 
 # Train network
-def train_network(network, x, y, validation_size=0.1, batch=10, iterations=10):
+def train_network(network, x, y, validation_size=0, batch=24, iterations=10):
     # TODO: need to check input to make sure its correct
     network.fit(x = x, y= y, validation_split=validation_size, batch_size=batch, verbose=2, epochs=iterations)
     return network

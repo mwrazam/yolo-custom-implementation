@@ -18,6 +18,6 @@ x, y = ld.load(classes=classes, data_dir=data_dir, file_ext=file_ext, reload_dat
 x_train, y_train, x_test, y_test = ld.divide_into_sets(input=x, response=y, ratio=0.2)
 
 # split up data into training and test samples
-yolo = net.build_network(version=1)
-yolo = net.train_network(network=yolo, x=x_train, y=y_train, batch=10, iterations=10)
+yolo = net.build_network(y=y_train, batch=24, version=1, input_size=(448,448,3), output_size=392)
+yolo = net.train_network(network=yolo, x=x_train, y=y_train, batch=24, iterations=10)
 performance_metrics = net.test_network(network=yolo, x=x_test, y=y_test);
