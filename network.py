@@ -5,7 +5,7 @@ import os
 import metrics as metrics
 import loss
 
-def build_network(y, batch=24, optimizer=None, weights_file=None, version=1, input_size=(448,448,3), output_size=392):
+def build_network(y, batch=2, optimizer=None, weights_file=None, version=1, input_size=(448,448,3), output_size=392):
     network = build_layers(version=version, input_size=input_size, output_size=output_size);
 
     if(optimizer==None):
@@ -99,7 +99,7 @@ def load_weights(network, file):
     return network
 
 # Train network
-def train_network(network, x, y, validation_size=0, batch=24, iterations=10):
+def train_network(network, x, y, validation_size=0, batch=2, iterations=10):
     # TODO: need to check input to make sure its correct
     network.fit(x = x, y= y, validation_split=validation_size, batch_size=batch, verbose=2, epochs=iterations)
     return network
