@@ -197,7 +197,7 @@ def split_image_into_cells(image, num_cells):
 def divide_into_sets(input, response, ratio):
     # create indicies
     l = len(input)
-    trainingIndices = np.random.randint(0, l, int(ratio * l))
+    trainingIndices = np.random.randint(0, l, int((1-ratio) * l))
     testIndicies = np.arange(0,l)
     testIndicies = np.delete(testIndicies, trainingIndices)
 
