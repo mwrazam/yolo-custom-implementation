@@ -31,6 +31,9 @@ def interpret_output(response):
     # TODO
     pass
 
+def check_box(y_vals, box_thresh):
+    pass
+
 # interval_a: box 1 (min, max)
 # interval_b: box 2 (mix, max)
 def overlap(interval_a, interval_b):
@@ -68,10 +71,10 @@ def iou(box1, box2):
 
 # y_vals: (1500,7,7,8)
 #   pc,bx,by,bw,bh,c1,c2,c3
-def draw_box(y_vals):
-    for img in y_vals:
+def draw_box(x, y_vals):
+    for imgx,imgy in zip(x,y_vals):
         box_val = []
-        for cell in img:
+        for cell in imgy:
             for box_values in cell:
                 xmin = int(box_values[1] - box_values[3] // 2)
                 xmax = int(box_values[1] + box_values[3] // 2)
