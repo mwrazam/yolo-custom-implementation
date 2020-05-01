@@ -4,6 +4,13 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import backend as K
 from sklearn.metrics import average_precision_score
+<<<<<<< HEAD
+=======
+
+box_offset = 384
+grid_cells = 7**2
+
+>>>>>>> 336c5b43eb35ff46bf1b5b2c44e489a5201b979c
 
 # BoundBox class
 class BoundBox:
@@ -24,11 +31,17 @@ def calculate_metrics(truth, predicted):
     # Evaluation metric from A2
     m = average_precision_score(truth, predicted)
     return m
+<<<<<<< HEAD
     #pass
+=======
+>>>>>>> 336c5b43eb35ff46bf1b5b2c44e489a5201b979c
 
 # Interpret output of neural network
 def interpret_output(response):
     # TODO
+    pass
+
+def check_box(y_vals, box_thresh):
     pass
 
 # interval_a: box 1 (min, max)
@@ -68,9 +81,10 @@ def iou(box1, box2):
 
 # y_vals: (1500,7,7,8)
 #   pc,bx,by,bw,bh,c1,c2,c3
-def draw_box(y_vals):
-    for img in y_vals:
+def draw_box(x, y_vals):
+    for imgx,imgy in zip(x,y_vals):
         box_val = []
+<<<<<<< HEAD
         for cell in img:
             for box_values in cell:
                 xmin = int(box_values[1] - box_values[3] // 2)
@@ -101,3 +115,49 @@ def draw_box(y_vals):
                         label_str = 'hexagon'
                     cv2.rectangle(cell, start_p, end_p, color, thickness)
                     cv2.putText(cell, label_str, (box.xmin, box.ymin - 13), cv2.FONT_HERSHEY_SIMPLEX, fontScale, color, thickness)
+=======
+        label_str = ''
+        start_x = start_y = end_x = end_y = 0
+
+        for i in range(grid_cells):
+            xmin = int(imgy[i*8+1] - imgy[i*8+3] // 2)
+            xmax = int(imgy[i*8+1] + imgy[i*8+3] // 2)
+            ymin = int(imgy[i*8+2] - imgy[i*8+4] // 2)
+            ymax = int(imgy[i*8+2] + imgy[i*8+4] // 2)
+            c1 = imgy[i*8+5]
+            c2 = imgy[i*8+6]
+            c3 = imgy[i*8+7]
+            box = BoundBox(imgy[i*8], xmin, ymin, xmax, ymax, c1, c2, c3)
+            box_val.append(box)
+            if box.pc != 0:
+                # Lable the box
+                if box.c1 == 1:
+                    label_str = 'circle'
+                if box.c2 == 1:
+                    label_str = 'square'
+                if box.c3 == 1:
+                    label_str = 'hexagon'
+                    
+        for i in range(0,len(box_val)): 
+            start_x += box_val[i].xmin
+            start_y += box_val[i].ymin
+            end_x += box_val[i].xmax
+            end_y += box_val[i].ymax
+
+        start_x = start_x // grid_cells
+        start_y = start_y // grid_cells
+        end_x = end_x // grid_cells
+        end_y = end_y // grid_cells
+
+        start = (start_x, start_y)
+        end = (end_x+box_offset, end_y+box_offset)
+
+        color = (0,0,255)
+        thickness = 2
+        fontScale = 0.7
+        cv2.rectangle(imgx, start, end, color, thickness)
+        cv2.putText(imgx, label_str, (start_x+15, start_y+30), cv2.FONT_HERSHEY_SIMPLEX, fontScale, color, thickness)
+        cv2.imshow('image', imgx)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+>>>>>>> 336c5b43eb35ff46bf1b5b2c44e489a5201b979c
