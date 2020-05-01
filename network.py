@@ -106,8 +106,8 @@ def train_network(network, x, y, validation_size=0, batch=6, iterations=10):
 # Test network
 def test_network(network, x, y):
     # TODO: need to check input to make sure its correct
-    predicted_output = network.evaluate(x, y, verbose=2)
+    #predicted_output = network.evaluate(x, y, verbose=2)
     y_pred = network.predict(x)
-    m = metrics.calculate_metrics(y, predicted_output)
+    #m = metrics.calculate_metrics(y, predicted_output)
     metrics.draw_box(x, y_pred)
-    return m
+    return y_pred
