@@ -1,8 +1,11 @@
 # Utitlities to load quickdraw dataset
 
 from os import path
+import os
+import shutil
 import numpy as np
 import cv2
+import urllib.request
 
 # Load raw data and apply preprocessing
 def load(classes, data_dir, file_ext=".npy", reload_data=False, samples=10, img_size=[448,448], num_cells=[7,7]):
@@ -16,45 +19,47 @@ def load(classes, data_dir, file_ext=".npy", reload_data=False, samples=10, img_
     labels = np.empty([0])
 
     # check if we need to perform full download
-    if(not path.exists(data_dir) or reload_data):
+    if(reload_data or not path.exists(data_dir)):
         print('Loading full dataset')
-    else:
-        # load the data we need
-        print('Loading data from folder: ' + data_dir)
+        if (path.exists(data_dir)):
+            shutil.rmtree(data_dir, ignore_errors=False, onerror=None)
+        os.mkdir(data_dir)
         for idx, c in enumerate(classes):
-            # download the data file if we don't already have it
             if(not path.exists(data_dir + "/" + c + file_ext)):
-                download_data_file(c, base_url)
+                download_data_file(c, base_url, data_dir, file_ext)
 
-            # load raw data and grab only the number of samples we are to use
-            data = np.load(data_dir + "/" + c + file_ext)
-            data = data[0:samples, :, None, None]
+    for idx, c in enumerate(classes):
+        # load raw data and grab only the number of samples we are to use
+        data = np.load(data_dir + "/" + c + file_ext)
+        data = data[0:samples, :, None, None]
 
-            # process and prepare input data, add to data holder
-            print('Processing input data for %s class...' % c)
+        # process and prepare input data, add to data holder
+        print('Processing input data for %s class...' % c)
 
-            data_x = prepare_x(data, x.shape)
-            x = np.concatenate((x, data_x), axis=0)
+        data_x = prepare_x(data, x.shape)
+        x = np.concatenate((x, data_x), axis=0)
 
-            # process and prepare response data, add to holder
-            print('Processing response data for %s class...' % c)
-            labels = np.full(x.shape[0], idx)
-            l = np.append(y, labels)
-            data_y = prepare_y(data_x, labels, classes, classes[idx], num_cells, y.shape)
-            y = np.concatenate((y, data_y), axis=0)
-        
+        # process and prepare response data, add to holder
+        print('Processing response data for %s class...' % c)
+        labels = np.full(x.shape[0], idx)
+        l = np.append(y, labels)
+        data_y = prepare_y(data_x, labels, classes, classes[idx], num_cells, y.shape)
+        y = np.concatenate((y, data_y), axis=0)
+
         # Reshape the output to match loss function
-        y = y.reshape(y.shape[0], y.shape[1]*y.shape[2]*y.shape[3])
-        print('Final input data is %s' % str(x.shape))
-        print('Final response data is %s' % str(y.shape))
+    y = y.reshape(y.shape[0], y.shape[1]*y.shape[2]*y.shape[3])
+    print('Final input data is %s' % str(x.shape))
+    print('Final response data is %s' % str(y.shape))
 
     return (x,y)
 
-def download_data_file(object_class, url):
+def download_data_file(object_class, url, data_dir, file_ext):
     # we need to download this file
     print("Downloading %s data file" % object_class)
     cls_url = object_class.replace('_', '%20')
-    urllib.request.urlretrieve(url + cls_url + file_ext, data_dir + '/' + object_class + file_ext)
+    p = data_dir + '/' + object_class + file_ext
+    l = url + cls_url + file_ext
+    urllib.request.urlretrieve(l, p)
 
     return None
 
@@ -80,16 +85,19 @@ def prepare_x(data, output_size):
 
     # resize and process all input for output
     for img in data:
+        img = img.flatten()
+
         # enlarge images to expected input size
         img = img.reshape(s,s)
         img = cv2.resize(img, (w2, h2))
 
         # duplicate single channel to 3-dimensional
         img_out = np.empty([w2, h2, d2])
+
         for dim in range(d2):
             # normalize
-            img = img.astype('float64')
-            img /= 255.0
+        #    img = img.astype('float64')
+        #    img /= 255.0
             img_out[:,:,dim] = img
 
         # add to output array
@@ -127,7 +135,7 @@ def prepare_y(data, labels, classes, this_class, num_cells, response_size):
 
             # grab the cell
             cell = img_cells[i,:,:]
-            
+
             # generate class specific probability
             class_values = np.zeros([len(classes)])
             class_idx = classes.index(this_class)
@@ -142,8 +150,8 @@ def prepare_y(data, labels, classes, this_class, num_cells, response_size):
 
                 # assume class is present for non-zero values
                 pc = 1
-                
-                # Grab all non-zero values' index 
+
+                # Grab all non-zero values' index
                 bx_index = np.where(cell!=0)[0]
                 by_index = np.where(cell!=0)[1]
 

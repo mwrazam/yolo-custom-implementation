@@ -3,7 +3,7 @@ import math
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import backend as K
-# from sklearn.metrics import average_precision_score
+from sklearn.metrics import average_precision_score
 
 # BoundBox class
 class BoundBox:
@@ -22,9 +22,9 @@ class BoundBox:
 # Calculate the output of testing the neural network
 def calculate_metrics(truth, predicted):
     # Evaluation metric from A2
-    # m = average_precision_score(truth, predicted)
-    # return m
-    pass
+    m = average_precision_score(truth, predicted)
+    return m
+    #pass
 
 # Interpret output of neural network
 def interpret_output(response):
@@ -101,4 +101,3 @@ def draw_box(y_vals):
                         label_str = 'hexagon'
                     cv2.rectangle(cell, start_p, end_p, color, thickness)
                     cv2.putText(cell, label_str, (box.xmin, box.ymin - 13), cv2.FONT_HERSHEY_SIMPLEX, fontScale, color, thickness)
-

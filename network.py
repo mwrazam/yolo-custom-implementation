@@ -12,9 +12,8 @@ def build_network(y, batch=2, optimizer=None, weights_file=None, version=1, inpu
         optimizer = define_optimizer()
 
     # TODO: Metrics are not correct here
-    print("This is LOSS FUNCTION here: ")
     network.compile(loss=loss.custom_loss(y,batch), optimizer=optimizer, metrics=['top_k_categorical_accuracy'])
-    print("LOSS FUNCTION WORKED! ")
+    #network.compile(loss='mean_squared_error', optimizer=optimizer, metrics=['top_k_categorical_accuracy'])
     return network
 
 def build_layers(version, input_size, output_size):
@@ -107,6 +106,6 @@ def train_network(network, x, y, validation_size=0, batch=2, iterations=10):
 # Test network
 def test_network(network, x, y):
     # TODO: need to check input to make sure its correct
-    predicted_output = network.evaluate(x, y, verbose=2)
-    m = metrics.calculate_metrics(y, predicted_output)
-    return m
+    performance = network.evaluate(x, y, verbose=2)
+    #m = metrics.calculate_metrics(y, predicted_output)
+    return performance
