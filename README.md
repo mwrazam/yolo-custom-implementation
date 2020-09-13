@@ -1,4 +1,4 @@
-# ECE 471 Project - Object Detection and Classification for Reproduction as Scalable Vetor Graphics
+Object Detection and Classification for Reproduction as Scalable Vetor Graphics Using YOLO v3
 Authors: Muhammad Azam and Zirui Li
 
 ## Steps to run code
